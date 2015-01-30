@@ -1,0 +1,88 @@
+//Harry Pham 79422112
+Ship spaceship;
+//An arraylist of asteroids
+ArrayList asteroids;
+//An arraylist of shots fired
+ArrayList shots;
+//Difficulty of the game, each difficulty increase adds more asteroids
+int difficulty = 1;
+//Current number of asteroids in the dificulty
+int numberofasteroids = 0;
+void setup() {
+  size(700, 700);
+  smooth();
+  frameRate(30);
+  spaceship= new Ship(width/2, height/2);
+  shots = new ArrayList();
+  asteroids = new ArrayList();
+  asteroids.add(new Asteroid());
+}
+void draw() {
+  //Keeps track of time to increase difficulty
+  int m = millis();
+  difficulty = m/5000;
+  background(0);
+  textSize(20);
+  fill(255);
+  //Tells player how much shields they have left
+  text("Shield: "+ spaceship.shield(), 10, 40);
+  //Shows the spaceship
+  spaceship.display();
+  //Shoots shots from spaceship
+  spaceship.shoot();
+  //Reloads the shot after it has been fired
+  spaceship.reload();
+  //Recharges the spaceship's shields
+  spaceship.shieldrecharge();
+  //Checks if shots are still in window or not and moves the shots
+  for (int i = shots.size()-1; i >= 0; i--) {
+    Shot shot = (Shot) shots.get(i);
+    if (shot.x() > width || shot.x() < 0 || shot.y() > height || shot.y() < 0) {
+      shots.remove(i);
+    }
+    else {
+      shot.walk();
+      shot.display();
+    }
+  }
+  //Checks to see if any shots hit any asteroids
+  for (int i = shots.size()-1; i >= 0; i--) {
+    for (int j = asteroids.size()-1; j >= 0; j--) {
+      try {
+        Shot shot = (Shot) shots.get(i);
+        Asteroid asteroid = (Asteroid) asteroids.get(j);
+        if (shot.location().dist(asteroid.location()) <= 30) {
+          asteroids.remove(j);
+          shots.remove(i);
+        }
+      }
+      catch (IndexOutOfBoundsException e){
+      }
+    }
+  }
+  //Creates more asteroids according to the difficulty
+  if (numberofasteroids < difficulty) {
+    for (int i = 0; i <= difficulty-1; i++) {
+      asteroids.add(new Asteroid());
+      numberofasteroids+=1;
+    }
+  }
+  //Moves the asteroids and removes them if they hit the ship
+  for (int i = asteroids.size()-1; i >= 0; i--) {
+    Asteroid asteroid = (Asteroid) asteroids.get(i);
+    asteroid.update();
+    spaceship.checkhit(asteroid.location());
+    asteroid.display();
+    if (spaceship.location().dist(asteroid.location()) <= 85){
+      asteroids.remove(i);
+    }
+  }
+  // Ends the game if the spaceship's shields is 0
+  if (spaceship.shield() <= 0){
+    textSize(30);
+    fill(255,0,0);
+    text("Spaceship has been destroyed!", 125,320);
+    noLoop();
+  }
+}
+
